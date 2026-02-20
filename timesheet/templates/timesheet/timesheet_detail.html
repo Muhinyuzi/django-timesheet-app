@@ -1,36 +1,44 @@
 {% extends "timesheet/base.html" %}
 {% block content %}
 
-<h2>
-Feuille de temps - {{ timesheet.employee.name }}
-</h2>
-
+<h2>Feuille de temps - {{ timesheet.employee.name }}</h2>
 <p>Semaine début : {{ timesheet.week_start }}</p>
 
-<table>
-  <tr>
-    <th>Jour</th>
-    <th>Arrivée matin</th>
-    <th>Départ dîner</th>
-    <th>Retour dîner</th>
-    <th>Arrivée soir</th>
-    <th>Départ soir</th>
-    <th>Total (min)</th>
-  </tr>
+<form method="post">
+  {% csrf_token %}
+  {{ formset.management_form }}
 
-  {% for entry in entries %}
-  <tr>
-    <td>{{ entry.get_day_display }}</td>
-    <td>{{ entry.arrival_morning|default:"-" }}</td>
-    <td>{{ entry.lunch_departure|default:"-" }}</td>
-    <td>{{ entry.lunch_return|default:"-" }}</td>
-    <td>{{ entry.arrival_evening|default:"-" }}</td>
-    <td>{{ entry.departure_evening|default:"-" }}</td>
-    <td>{{ entry.total_minutes }}</td>
-  </tr>
-  {% endfor %}
+  <table>
+    <tr>
+      <th>Jour</th>
+      <th>Arrivée matin</th>
+      <th>Départ dîner</th>
+      <th>Retour dîner</th>
+      <th>Arrivée soir</th>
+      <th>Départ soir</th>
+      <th>Total (min)</th>
+    </tr>
 
-</table>
+    {% for form in formset %}
+    <tr>
+      <td>{{ form.instance.get_day_display }}</td>
+
+      {{ form.id }}
+
+      <td>{{ form.arrival_morning }}</td>
+      <td>{{ form.lunch_departure }}</td>
+      <td>{{ form.lunch_return }}</td>
+      <td>{{ form.arrival_evening }}</td>
+      <td>{{ form.departure_evening }}</td>
+
+      <td>{{ form.instance.total_minutes }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <br>
+  <button type="submit">Enregistrer</button>
+</form>
 
 <h3>Total semaine : {{ timesheet.total_hours }} heures</h3>
 

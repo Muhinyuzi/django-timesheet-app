@@ -1,6 +1,7 @@
 from django import forms
 from .models import WeeklyTimesheet, DailyEntry
 from django.forms import modelformset_factory
+from datetime import timedelta
 
 
 class WeeklyTimesheetForm(forms.ModelForm):
@@ -12,9 +13,30 @@ class WeeklyTimesheetForm(forms.ModelForm):
         }
 
     def clean_week_start(self):
-        week_start = self.cleaned_data["week_start"]
-        # optionnel: ici on pourrait valider que c’est un lundi
-        return week_start
+        d = self.cleaned_data["week_start"]
+        # weekday(): lundi=0 ... dimanche=6
+        if d.weekday() != 0:
+            raise forms.ValidationError("La date doit être un lundi (début de la semaine).")
+        return d
+
+    def clean(self):
+        cleaned = super().clean()
+        employee = cleaned.get("employee")
+        week_start = cleaned.get("week_start")
+
+        if employee and week_start:
+            qs = WeeklyTimesheet.objects.filter(employee=employee, week_start=week_start)
+
+            # Important si un jour tu réutilises ce form pour modifier une feuille existante
+            if self.instance and self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+
+            if qs.exists():
+                raise forms.ValidationError(
+                    "Une feuille de temps existe déjà pour cet employé pour cette semaine."
+                )
+
+        return cleaned
     
 
 class DailyEntryForm(forms.ModelForm):

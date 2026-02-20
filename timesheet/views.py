@@ -2,11 +2,12 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.shortcuts import get_object_or_404
 from django.db import IntegrityError
+from django.forms import modelformset_factory
 
 # Create your views here.
 
 from .models import Employee, WeeklyTimesheet, DailyEntry
-from .forms import WeeklyTimesheetForm
+from .forms import WeeklyTimesheetForm, DailyEntryForm
 
 
 def employee_list(request):
@@ -39,16 +40,29 @@ def timesheet_create(request):
 def timesheet_detail(request, pk):
     timesheet = get_object_or_404(WeeklyTimesheet, pk=pk)
 
-    # Créer automatiquement les jours s'ils n'existent pas
-    for day_code, _ in DailyEntry.Weekday.choices[:5]:  # Lundi à Vendredi
+    # S'assurer que Lun → Ven existent
+    for day_code, _ in DailyEntry.Weekday.choices[:5]:
         DailyEntry.objects.get_or_create(
             timesheet=timesheet,
             day=day_code
         )
 
-    entries = timesheet.entries.all()
+    queryset = timesheet.entries.all().order_by("day")
+
+    DailyEntryFormSet = modelformset_factory(
+        DailyEntry,
+        form=DailyEntryForm,
+        extra=0
+    )
+
+    if request.method == "POST":
+        formset = DailyEntryFormSet(request.POST, queryset=queryset)
+        if formset.is_valid():
+            formset.save()
+    else:
+        formset = DailyEntryFormSet(queryset=queryset)
 
     return render(request, "timesheet/timesheet_detail.html", {
         "timesheet": timesheet,
-        "entries": entries
+        "formset": formset
     })
