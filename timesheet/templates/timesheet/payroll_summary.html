@@ -1,0 +1,38 @@
+{% extends "timesheet/base.html" %}
+{% block content %}
+
+<h2>Résumé Paie & Banque d'heures</h2>
+
+<table>
+  <tr>
+    <th>Employé</th>
+    <th>Taux horaire</th>
+    <th>Total heures</th>
+    <th>Heures normales</th>
+    <th>Heures en banque</th>
+    <th>Total paie</th>
+  </tr>
+
+  {% for r in rows %}
+  <tr>
+    <td>{{ r.employee.name }}</td>
+    <td>{{ r.hourly_rate }}</td>
+    <td>{{ r.total_hours }}</td>
+    <td>{{ r.regular_hours }}</td>
+    <td>{{ r.banked_hours }}</td>
+    <td>{{ r.pay_total }}</td>
+  </tr>
+  {% empty %}
+  <tr><td colspan="6">Aucun employé.</td></tr>
+  {% endfor %}
+</table>
+
+<h3>Totaux (tous employés)</h3>
+<ul>
+  <li>Total heures: {{ grand_total_hours }}</li>
+  <li>Total heures normales: {{ grand_regular_hours }}</li>
+  <li>Total heures en banque: {{ grand_banked_hours }}</li>
+  <li>Total paie: {{ grand_pay }}</li>
+</ul>
+
+{% endblock %}

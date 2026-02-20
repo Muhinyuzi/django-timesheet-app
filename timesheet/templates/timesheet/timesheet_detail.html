@@ -42,4 +42,21 @@
 
 <h3>Total semaine : {{ timesheet.total_hours }} heures</h3>
 
+<h3>Résumé</h3>
+
+<table>
+  <tr>
+    <td><b>Heures accumulées</b></td>
+    <td>{{ total_hours }}</td>
+  </tr>
+  <tr>
+    <td><b>Total de la paie</b></td>
+    <td>{{ total_pay }} $</td>
+  </tr>
+  <tr>
+    <td><b>Heures en banque</b></td>
+    <td>{{ total_banked }}</td>
+  </tr>
+</table>
+
 {% endblock %}

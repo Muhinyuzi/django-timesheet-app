@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, date, time, timedelta
+from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -9,6 +10,8 @@ from django.db import models
 class Employee(models.Model):
     name = models.CharField("Nom de l’employé", max_length=150)
     is_active = models.BooleanField("Actif", default=True)
+    hourly_rate = models.DecimalField("Taux horaire", max_digits=8, decimal_places=2, default=Decimal("0.00"))
+    weekly_regular_hours = models.DecimalField("Heures normales/semaine", max_digits=5, decimal_places=2, default=Decimal("40.00"))
     created_at = models.DateTimeField("Créé le", auto_now_add=True)
 
     class Meta:
@@ -38,16 +41,42 @@ class WeeklyTimesheet(models.Model):
     def __str__(self) -> str:
         return f"{self.employee.name} - {self.week_start}"
 
+    # ✅ Validation stricte : week_start doit être lundi
+    def clean(self):
+        super().clean()
+        if self.week_start.weekday() != 0:
+            raise ValidationError({
+                "week_start": "La date doit être un lundi (début de la semaine)."
+            })
+
+    # ✅ Force validation même via admin
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    # ✅ Calcul fiable basé sur minutes (pas de float)
     @property
-    def total_duration(self) -> timedelta:
-        total = timedelta()
-        for entry in self.entries.all():
-            total += entry.total_duration
-        return total
+    def total_minutes(self) -> int:
+        return sum(e.total_minutes for e in self.entries.all())
+
+    @property
+    def total_hours_decimal(self) -> Decimal:
+        return (Decimal(self.total_minutes) / Decimal(60)).quantize(Decimal("0.01"))
 
     @property
     def total_hours(self) -> float:
-        return round(self.total_duration.total_seconds() / 3600, 2)
+        return float(self.total_hours_decimal)
+
+    @property
+    def regular_hours(self) -> Decimal:
+        cap = self.employee.weekly_regular_hours
+        return min(self.total_hours_decimal, cap)
+
+    @property
+    def banked_hours(self) -> Decimal:
+        cap = self.employee.weekly_regular_hours
+        extra = self.total_hours_decimal - cap
+        return extra if extra > 0 else Decimal("0.00")
 
 
 class DailyEntry(models.Model):
@@ -133,3 +162,7 @@ class DailyEntry(models.Model):
     @property
     def total_minutes(self) -> int:
         return int(self.total_duration.total_seconds() // 60)
+    
+    @property
+    def total_hours(self) -> float:
+        return round(self.total_minutes / 60, 2)
