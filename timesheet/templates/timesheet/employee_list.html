@@ -1,0 +1,25 @@
+{% extends "timesheet/base.html" %}
+
+{% block content %}
+
+<h2>Liste des employés</h2>
+
+<table>
+    <tr>
+        <th>Nom</th>
+        <th>Date création</th>
+    </tr>
+
+    {% for employee in employees %}
+    <tr>
+        <td>{{ employee.name }}</td>
+        <td>{{ employee.created_at }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="2">Aucun employé trouvé.</td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "timesheet/base.html" %}
+{% block content %}
+
+<h2>
+Feuille de temps - {{ timesheet.employee.name }}
+</h2>
+
+<p>Semaine début : {{ timesheet.week_start }}</p>
+
+<table>
+  <tr>
+    <th>Jour</th>
+    <th>Arrivée matin</th>
+    <th>Départ dîner</th>
+    <th>Retour dîner</th>
+    <th>Arrivée soir</th>
+    <th>Départ soir</th>
+    <th>Total (min)</th>
+  </tr>
+
+  {% for entry in entries %}
+  <tr>
+    <td>{{ entry.get_day_display }}</td>
+    <td>{{ entry.arrival_morning|default:"-" }}</td>
+    <td>{{ entry.lunch_departure|default:"-" }}</td>
+    <td>{{ entry.lunch_return|default:"-" }}</td>
+    <td>{{ entry.arrival_evening|default:"-" }}</td>
+    <td>{{ entry.departure_evening|default:"-" }}</td>
+    <td>{{ entry.total_minutes }}</td>
+  </tr>
+  {% endfor %}
+
+</table>
+
+<h3>Total semaine : {{ timesheet.total_hours }} heures</h3>
+
+{% endblock %}
