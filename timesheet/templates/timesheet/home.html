@@ -1,0 +1,13 @@
+{% extends "timesheet/base.html" %}
+{% block content %}
+
+<h1>Application Feuille de Temps</h1>
+
+<ul>
+    <li><a href="{% url 'timesheet:employee_list' %}">Employés</a></li>
+    <li><a href="{% url 'timesheet:timesheet_list' %}">Feuilles de temps</a></li>
+    <li><a href="{% url 'timesheet:timesheet_create' %}">Nouvelle feuille</a></li>
+    <li><a href="{% url 'timesheet:payroll_summary' %}">Résumé de la paie</a></li>
+</ul>
+
+{% endblock %}

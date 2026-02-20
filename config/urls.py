@@ -21,6 +21,4 @@ from timesheet import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("", include("timesheet.urls")),
-    path("timesheets/new/", views.timesheet_create, name="timesheet_create"),
-    path("timesheets/", views.timesheet_list, name="timesheet_list"),
 ]

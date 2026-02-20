@@ -22,6 +22,9 @@ weekday_order = Case(
     output_field=IntegerField(),
 )
 
+def home(request):
+    return render(request, "timesheet/home.html")
+
 
 def employee_list(request):
     employees = Employee.objects.filter(is_active=True)

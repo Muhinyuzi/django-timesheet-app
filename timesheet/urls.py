@@ -4,6 +4,7 @@ from . import views
 app_name = "timesheet"
 
 urlpatterns = [
+    path("", views.home, name="home"),  # 👈 page principale
     path("employees/", views.employee_list, name="employee_list"),
     path("timesheets/", views.timesheet_list, name="timesheet_list"),
     path("timesheets/new/", views.timesheet_create, name="timesheet_create"),
