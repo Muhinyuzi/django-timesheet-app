@@ -10,4 +10,5 @@ urlpatterns = [
     path("timesheets/new/", views.timesheet_create, name="timesheet_create"),
     path("timesheets/<int:pk>/", views.timesheet_detail, name="timesheet_detail"),
     path("payroll/summary/", views.payroll_summary, name="payroll_summary"),
+    path("timesheets/<int:pk>/export/", views.export_timesheet_excel, name="export_timesheet_excel"),
 ]

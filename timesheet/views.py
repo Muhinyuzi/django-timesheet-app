@@ -7,6 +7,10 @@ from decimal import Decimal
 from django.db.models import Prefetch, Case, When, IntegerField
 from datetime import timedelta
 from datetime import date
+from django.http import HttpResponse
+import openpyxl
+from openpyxl.styles import Font
+from django.contrib.auth.decorators import login_required
 
 # Create your views here.
 
@@ -19,6 +23,8 @@ weekday_order = Case(
     When(day="WED", then=3),
     When(day="THU", then=4),
     When(day="FRI", then=5),
+    When(day="SAT", then=6),
+    When(day="SUN", then=7),
     output_field=IntegerField(),
 )
 
@@ -34,9 +40,21 @@ def employee_list(request):
 
 
 def timesheet_list(request):
-    timesheets = WeeklyTimesheet.objects.select_related("employee").all()
-    return render(request, "timesheet/timesheet_list.html", {"timesheets": timesheets})
+    sort = request.GET.get("sort", "date")  # date par défaut
 
+    timesheets = WeeklyTimesheet.objects.select_related("employee")
+
+    if sort == "name":
+        timesheets = timesheets.order_by("employee__name", "-week_start")
+    else:  # tri par date (par défaut)
+        timesheets = timesheets.order_by("-week_start", "employee__name")
+
+    return render(request, "timesheet/timesheet_list.html", {
+        "timesheets": timesheets,
+        "sort": sort,
+    })
+
+@login_required
 def timesheet_create(request):
     if request.method == "POST":
         form = WeeklyTimesheetForm(request.POST)
@@ -55,6 +73,7 @@ def timesheet_create(request):
 
     return render(request, "timesheet/timesheet_form.html", {"form": form})
 
+@login_required
 def timesheet_detail(request, pk):
     timesheet = get_object_or_404(
         WeeklyTimesheet.objects.select_related("employee"),
@@ -63,7 +82,7 @@ def timesheet_detail(request, pk):
     employee = timesheet.employee
 
     # S'assurer que Lun → Ven existent
-    for day_code, _ in DailyEntry.Weekday.choices[:5]:
+    for day_code, _ in DailyEntry.Weekday.choices:
         DailyEntry.objects.get_or_create(timesheet=timesheet, day=day_code)
 
     queryset = (
@@ -155,3 +174,59 @@ def payroll_summary(request):
         "grand_pay": grand_pay.quantize(Decimal("0.01")),
     }
     return render(request, "timesheet/payroll_summary.html", context)
+
+def export_timesheet_excel(request, pk):
+    timesheet = get_object_or_404(WeeklyTimesheet, pk=pk)
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Feuille de temps"
+
+    # Titre
+    ws["A1"] = "Employé"
+    ws["B1"] = timesheet.employee.name
+
+    ws["A2"] = "Semaine"
+    ws["B2"] = f"{timesheet.week_start} → {timesheet.week_end}"
+
+    # En-têtes
+    headers = [
+        "Jour",
+        "Arrivée matin",
+        "Départ dîner",
+        "Retour dîner",
+        "Arrivée soir",
+        "Départ soir",
+        "Total (h)",
+    ]
+
+    ws.append([])
+    ws.append(headers)
+
+    for cell in ws[4]:
+        cell.font = Font(bold=True)
+
+    # Données
+    entries = timesheet.entries.all().annotate(day_order=weekday_order).order_by("day_order")
+
+    for entry in entries:
+        ws.append([
+            entry.get_day_display(),
+            entry.arrival_morning,
+            entry.lunch_departure,
+            entry.lunch_return,
+            entry.arrival_evening,
+            entry.departure_evening,
+            entry.total_hours,
+        ])
+
+    ws.append([])
+    ws.append(["Total semaine", "", "", "", "", "", timesheet.total_hours_decimal])
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = f'attachment; filename="timesheet_{timesheet.pk}.xlsx"'
+
+    wb.save(response)
+    return response

@@ -3,12 +3,64 @@
 <head>
     <title>Timesheet App</title>
     <style>
-        body { font-family: Arial; margin: 40px; }
-        table { border-collapse: collapse; width: 60%; }
-        th, td { border: 1px solid #ccc; padding: 8px; }
-        th { background-color: #f2f2f2; }
-        a { text-decoration: none; color: blue; }
-    </style>
+    body { font-family: Arial; margin: 40px; }
+
+    table {
+        border-collapse: collapse;
+        width: 80%;
+    }
+
+    th, td {
+        border: 1px solid #ccc;
+        padding: 8px;
+        vertical-align: top;
+    }
+
+    th {
+        background-color: #f2f2f2;
+        text-align: left;
+    }
+
+    a {
+        text-decoration: none;
+        color: #0066cc;
+    }
+
+    a:hover {
+        text-decoration: underline;
+    }
+
+    .field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    /* Nouveau style erreur plus propre */
+    .err {
+        margin-top: 6px;
+        padding: 6px 8px;
+        background-color: #fff4f4;
+        border-left: 3px solid #cc0000;
+        color: #990000;
+        font-size: 12px;
+        border-radius: 3px;
+    }
+
+    .err ul {
+        margin: 0;
+        padding-left: 14px;
+    }
+
+    .err li {
+        margin: 2px 0;
+    }
+
+    button {
+        padding: 6px 12px;
+        cursor: pointer;
+    }
+</style>
 </head>
 <body>
 
