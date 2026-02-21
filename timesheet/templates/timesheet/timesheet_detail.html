@@ -2,7 +2,7 @@
 {% block content %}
 
 <h2>Feuille de temps - {{ timesheet.employee.name }}</h2>
-<p>Semaine début : {{ timesheet.week_start }}</p>
+<p>Semaine : {{ timesheet.week_start }} → {{ timesheet.week_end }}</p>
 
 <form method="post">
   {% csrf_token %}
@@ -16,14 +16,29 @@
       <th>Retour dîner</th>
       <th>Arrivée soir</th>
       <th>Départ soir</th>
-      <th>Total (min)</th>
+      <th>Total (h)</th>
     </tr>
 
     {% for form in formset %}
     <tr>
-      <td>{{ form.instance.get_day_display }}</td>
+      <td>
+        <div class="field">
+          <strong>{{ form.instance.get_day_display }}</strong>
 
-      {{ form.id }}
+          {% if form.errors %}
+            <div class="err">
+              {% for field, errors in form.errors.items %}
+                {% for e in errors %}
+                  <div>{{ e }}</div>
+                {% endfor %}
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        {# champ hidden id doit être dans un td #}
+        <div style="display:none">{{ form.id }}</div>
+      </td>
 
       <td>{{ form.arrival_morning }}</td>
       <td>{{ form.lunch_departure }}</td>
@@ -31,31 +46,35 @@
       <td>{{ form.arrival_evening }}</td>
       <td>{{ form.departure_evening }}</td>
 
-      <td>{{ form.instance.total_minutes }}</td>
+      <td style="text-align:right">{{ form.instance.total_hours }}</td>
     </tr>
     {% endfor %}
   </table>
 
   <br>
   <button type="submit">Enregistrer</button>
+  <br><br>
+  <a href="{% url 'timesheet:export_timesheet_excel' timesheet.pk %}">
+      Exporter en Excel
+  </a>
 </form>
 
-<h3>Total semaine : {{ timesheet.total_hours }} heures</h3>
+<h3>Total semaine : {{ timesheet.total_hours_decimal }} heures</h3>
 
 <h3>Résumé</h3>
 
 <table>
   <tr>
     <td><b>Heures accumulées</b></td>
-    <td>{{ total_hours }}</td>
+    <td style="text-align:right">{{ total_hours }}</td>
   </tr>
   <tr>
     <td><b>Total de la paie</b></td>
-    <td>{{ total_pay }} $</td>
+    <td style="text-align:right">{{ total_pay }} $</td>
   </tr>
   <tr>
     <td><b>Heures en banque</b></td>
-    <td>{{ total_banked }}</td>
+    <td style="text-align:right">{{ total_banked }}</td>
   </tr>
 </table>
 

@@ -3,10 +3,25 @@
 
 <h2>Feuilles de temps</h2>
 
+<p>
+  Trier par :
+  {% if sort == "date" %}
+      <b>Date</b>
+  {% else %}
+      <a href="?sort=date">Date</a>
+  {% endif %}
+  |
+  {% if sort == "name" %}
+      <b>Nom</b>
+  {% else %}
+      <a href="?sort=name">Nom</a>
+  {% endif %}
+</p>
+
 <table>
   <tr>
     <th>Employé</th>
-    <th>Semaine (lundi)</th>
+    <th>Semaine</th>
     <th>Total heures</th>
   </tr>
 
@@ -14,11 +29,14 @@
   <tr>
     <td>
       <a href="{% url 'timesheet:timesheet_detail' ts.pk %}">
-      {{ ts.employee.name }}
+        {{ ts.employee.name }}
       </a>
     </td>
-    <td>{{ ts.week_start }}</td>
-    <td>{{ ts.total_hours }}</td>
+    <td>
+      {{ ts.week_start|date:"d F Y" }} →
+      {{ ts.week_end|date:"d F Y" }}
+    </td>
+    <td>{{ ts.total_hours_decimal }}</td>
   </tr>
   {% empty %}
   <tr><td colspan="3">Aucune feuille.</td></tr>

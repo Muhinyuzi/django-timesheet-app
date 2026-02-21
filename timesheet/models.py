@@ -77,6 +77,10 @@ class WeeklyTimesheet(models.Model):
         cap = self.employee.weekly_regular_hours
         extra = self.total_hours_decimal - cap
         return extra if extra > 0 else Decimal("0.00")
+    
+    @property
+    def week_end(self):
+        return self.week_start + timedelta(days=6)
 
 
 class DailyEntry(models.Model):
